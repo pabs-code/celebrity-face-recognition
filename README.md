@@ -21,7 +21,6 @@
   - [Demo](#demo)
   - [Acknowledgments](#acknowledgments)
   - [License](#license)
-  - [Notes](#notes)
 
 ## About the Project
 
@@ -115,9 +114,3 @@ A live demo of the application will be hosted on Streamlit Cloud soon.
 
 This project is licensed under the [MIT License](LICENSE).
 
-## Notes
-
-*   Consider expanding the dataset of celebrity face encodings to improve recognition accuracy.
-*   The application could be enhanced to support real-time face detection from webcam input.
-*   Consider adding a feature to allow users to train the application with their own faces.
-  
