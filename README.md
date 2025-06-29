@@ -21,10 +21,14 @@
   - [Demo](#demo)
   - [Acknowledgments](#acknowledgments)
   - [License](#license)
+  - [Notes](#notes)
+    - [Limitations of Using `face_recognition`](#limitations-of-using-face_recognition)
+    - [Customization](#customization)
+  - [Troubleshooting](#troubleshooting)
 
 ## About the Project
 
-This application leverages face recognition technology to identify celebrities from uploaded images.  It's built using Python, Streamlit, and the `face_recognition` library.
+This application leverages face recognition technology to identify celebrities from uploaded images.  It's built using Python, Streamlit, and the `face_recognition` library uses pre-trained models for face encoding.
 
 ### What is it?
 
@@ -47,6 +51,8 @@ The Celebrity Face Recognition App is a Streamlit application that allows users 
 *   **User-Friendly Interface:**  Intuitive Streamlit UI for easy image uploading and viewing results.
 *   **Responsive Layout:** Optimized for various screen sizes.
 *   **Clear Results Display**: The app displays both the original and processed images so you can see what the AI detected.
+*   **Modular Design**: Separation of model training, face detection logic, and UI components.
+*  **Progressive Feedback** during processing with progress bars.
 
 ## Getting Started
 
@@ -56,19 +62,27 @@ The Celebrity Face Recognition App is a Streamlit application that allows users 
 *   **pip:**  Python's package installer (usually included with Python installations).
 *   **Git:**  For cloning the repository.
 
+Before running the application, ensure you have installed the following libraries:
+
+```bash
+pip install streamlit face_recognition opencv-python numpy scikit-learn pillow
+```
+
 ### Folder Structure
 
 The project structure is as follows:
 
 ```
 celebrity_face_recognition/
-├── data/
-│   └── celebrity_encodings.joblib  # Pre-trained celebrity face encodings file
-├── .gitignore
-├── README.md
-├── main.py  # Main application script
-├── requirements.txt # List of required packages.
-└── setup.py # encode celebrity images into face encodings for face recogniton.
+│
+├── app.py                   # Streamlit App for face detection UI
+├── setup.py                 # Script to encode and save celebrity images as model
+├── celeb_images.py          # List of image paths used to train the model
+├── data/                    # Folder where trained model is saved
+│   └── celebrity_encodings.joblib  # Pre-trained face encodings
+├── img/                     # Folder containing celebrity images (can be updated by users)
+│   ├── Tom_Cruise.jpeg
+│   └── ... (other celebrity images)
 ```
 
 ## Installation
@@ -89,7 +103,7 @@ celebrity_face_recognition/
 To run the Streamlit application:
 
 ```bash
-streamlit run main.py
+streamlit run app.py
 ```
 
 This will open the application in your default web browser.
@@ -103,14 +117,56 @@ This will open the application in your default web browser.
 
 ## Demo
 
-A live demo of the application will be hosted on Streamlit Cloud soon.
+
+<img width="971" alt="Screenshot 2025-06-28 at 5 29 53 PM" src="https://github.com/user-attachments/assets/751bfbc8-0669-4ebf-abd7-043c1454a4ee" />
+
+<img width="985" alt="Screenshot 2025-06-28 at 5 30 02 PM" src="https://github.com/user-attachments/assets/b35675ed-d3cc-49ca-83c9-60b492a7ffa9" />
 
 ## Acknowledgments
 
-*   **Face Recognition Library:**  We greatly appreciate the developers of the `face_recognition` library for providing a powerful and easy-to-use tool for face detection and recognition.  [https://github.com/ageitgey/face_recognition](https://github.com/ageitgey/face_recognition)
-*   **Streamlit Community:** We thank the Streamlit community for their invaluable contributions to the development of this fantastic framework. [https://streamlit.io/](https://streamlit.io/)
+- [**face_recognition library**](https://github.com/ageitgey/face-recognition) – Used for face encoding and recognition.
+- [**Streamlit**](https://streamlit.io) – Used to build the interactive web app.
+- [**OpenCV (cv2)**](https://opencv.org) – Used for image processing.
+- [**scikit-learn (joblib)**](https://scikit-learn.org) – Used for model serialization.
+
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
 
+## Notes
+
+
+### Limitations of Using `face_recognition`
+
+- The `face_recognition` library is built on **dlib**, which may have performance and memory issues for large datasets.
+- It uses a pre-trained model that is not fine-tuned on specific use cases (e.g., celebrity recognition).
+- It may have **accuracy issues** with low-quality or partially visible faces.
+
+### Customization
+
+- This model is trained using only a few images listed in `celeb_images.py`. If you want to add more celebrities or update the model:
+  - Add their image files to the `img/` directory.
+  - Update `celeb_images.py` with the new image paths.
+  - Run the training script again using:
+
+```bash
+python setup.py
+```
+
+This will re-encode and save the new model in `data/celebrity_encodings.joblib`.
+
+---
+
+## Troubleshooting
+
+- **Error: No face found in image.**  
+  Ensure your images have clear, frontal faces and are of high quality.
+
+- **Model not loading.**  
+  Verify that the file `data/celebrity_encodings.joblib` exists and is not corrupted.
+
+- **Face detection is slow.**  
+  Consider reducing image resolution or using GPU acceleration (if supported).
+
+---
