@@ -1,4 +1,4 @@
-# Celebrity Face Recognition App
+# Celebrity Face Recognition
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![Streamlit Version](https://img.shields.io/badge/streamlit-1.20.0%2B-green.svg)](https://streamlit.io/)
