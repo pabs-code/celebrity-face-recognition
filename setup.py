@@ -57,7 +57,7 @@ class CelebrityEncoder:
             # Store the encoding along with the name
             self.encodings.append((name, celeb_encoding))
 
-    def save_encodings(self, output_path="data/celebrity_encodings.joblib"):
+    def save_encodings(self, output_path="./data/celebrity_encodings.joblib"):
         """
         Save the celebrity face encodings to a file.
 
