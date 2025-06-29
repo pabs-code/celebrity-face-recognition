@@ -13,35 +13,55 @@ st.set_page_config(page_title="Celebrity Face Recognition", layout="wide")
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(levelname)s - %(message)s")
 
+# Initialize session state for model loading
+if "model_loaded" not in st.session_state:
+    st.session_state.model_loaded = False
 
-class CelebrityRecognizer:
-    """
-    A class to recognize celebrities in images using face encodings.
+# Initialize session state for progress bar
+if "progress" not in st.session_state:
+    st.session_state.progress = 0.0
+if "progress_message" not in st.session_state:
+    st.session_state.progress_message = ""
 
-    Attributes:
-        celeb_encodings (list): Precomputed list of celebrity face encodings.
-            Each element is a tuple: (celebrity_name, face_encoding).
-        known_faces (dict): A dictionary mapping names to their encodings.
-    """
+# Progress bar and status update function
 
-    def __init__(self, encoding_file="data/celebrity_encodings.joblib"):
+
+def update_progress(message, value):
+    st.session_state.progress = value
+    st.session_state.progress_message = message
+
+# Singleton class for celebrity recognition with model loading and progress feedback
+
+
+class SingletonCelebrityRecognizer:
+    _instance = None
+
+    def __new__(cls, encoding_file="data/celebrity_encodings.joblib"):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.encoding_file = encoding_file
+            cls._instance.celeb_encodings = None  # Will be loaded lazily
+            cls._instance.loaded = False  # Flag to indicate if model is loaded
+        return cls._instance
+
+    def load_model(self):
         """
-        Initialize the recognizer and load precomputed celebrity encodings.
+        Load the precomputed celebrity encodings from a file.
 
-        Args:
-            encoding_file (str): Path to the joblib file containing celebrity encodings.
+        Returns:
+            list: List of (celebrity_name, face_encoding) tuples.
         """
         try:
-            self.celeb_encodings = joblib.load(encoding_file)
+            # Show progress bar and message
+            update_progress("Loading celebrity encodings...", 0.2)
+            self.celeb_encodings = joblib.load(self.encoding_file)
             logging.info("Celebrity encodings loaded successfully.")
+            update_progress("Model loading complete!", 1.0)
         except Exception as e:
             logging.error(f"Failed to load celebrity encodings: {e}")
             st.error(
                 "Error loading precomputed celebrity encodings. Please check the file path.")
-            self.celeb_encodings = []
-
-        # Build a dictionary for faster lookup
-        self.known_faces = {name: enc for name, enc in self.celeb_encodings}
+            raise  # Re-raise to let the calling code handle it
 
     def detect_faces(self, image):
         """
@@ -53,6 +73,16 @@ class CelebrityRecognizer:
         Returns:
             PIL.Image: Modified image with celebrity labels.
         """
+        if not self.loaded:
+            try:
+                self.load_model()
+                self.loaded = True
+            except Exception as e:
+                logging.error(f"Error loading model during detection: {e}")
+                st.error(
+                    "Failed to load celebrity encodings. Cannot detect faces.")
+                return image
+
         try:
             img_rgb = np.array(image)
             face_locations = face_recognition.face_locations(img_rgb)
@@ -139,8 +169,8 @@ def main():
         - Unknown faces are labeled as "Unknown".
     """)
 
-    # Initialize the celebrity recognizer
-    recognizer = CelebrityRecognizer()
+    # Initialize the singleton celebrity recognizer
+    recognizer = SingletonCelebrityRecognizer()
 
     # Allow multiple image uploads
     uploaded_images = st.file_uploader("Choose your images...",
@@ -156,10 +186,12 @@ def main():
                 col1, col2 = st.columns(2)
 
                 with col1:
-                    original_image = Image.open(image)
                     resized_original = original_image.resize((500, 500))
                     st.image(
-                        resized_original, caption=f"Original Image {i + 1}", use_container_width=True)
+                        resized_original,
+                        caption=f"Original Image {i + 1}",
+                        use_container_width=True
+                    )
 
                 with st.spinner(f"Processing image {i + 1}..."):
                     detected_img = recognizer.detect_faces(original_image)
@@ -167,10 +199,22 @@ def main():
 
                 with col2:
                     st.image(
-                        resized_detected, caption=f"Detected Image {i + 1}", use_container_width=True)
+                        resized_detected,
+                        caption=f"Detected Image {i + 1}",
+                        use_container_width=True
+                    )
 
             except Exception as e:
                 st.error(f"Error processing image {i + 1}: {e}")
+
+    # Display progress message if available
+    if st.session_state.progress_message:
+        with st.status(st.session_state.progress_message, state="complete"):
+            pass
+
+    # Display progress bar
+    if st.session_state.progress > 0:
+        st.progress(st.session_state.progress)
 
 
 if __name__ == "__main__":
