@@ -36,7 +36,7 @@ def update_progress(message, value):
 class SingletonCelebrityRecognizer:
     _instance = None
 
-    def __new__(cls, encoding_file="./data/celebrity_encodings.joblib"):
+    def __new__(cls, encoding_file="./model/celebrity_encodings.joblib"):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance.encoding_file = encoding_file
